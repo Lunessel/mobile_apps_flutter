@@ -1,26 +1,21 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:mobile_app/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('Login screen smoke test', (WidgetTester tester) async {
     await tester.pumpWidget(const MyApp());
 
-    expect(find.text('Лічильник: 0'), findsOneWidget);
-    expect(find.text('Лічильник: 1'), findsNothing);
+    expect(find.text('Hydro Monitor'), findsOneWidget);
+    expect(find.text('Увійти'), findsOneWidget);
+    expect(find.text('Зареєструватися'), findsOneWidget);
+  });
 
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('Navigate to register screen', (WidgetTester tester) async {
+    await tester.pumpWidget(const MyApp());
 
-    expect(find.text('Лічильник: 0'), findsNothing);
-    expect(find.text('Лічильник: 1'), findsOneWidget);
+    await tester.tap(find.text('Зареєструватися'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Реєстрація'), findsOneWidget);
   });
 }
