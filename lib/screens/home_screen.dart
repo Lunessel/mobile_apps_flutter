@@ -1,21 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app/data/models/user.dart';
+import 'package:mobile_app/data/repositories/auth_repository.dart';
+import 'package:mobile_app/data/service_locator.dart';
 import 'package:mobile_app/widgets/sensor_card.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final AuthRepository _repo = ServiceLocator.auth;
+  UserModel? _user;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    final user = await _repo.getCurrentUser();
+    if (!mounted) return;
+    setState(() => _user = user);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hydro Monitor'),
+        title: Text(_user != null ? 'Привіт, ${_user!.name}' : 'Hydro Monitor'),
         automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            onPressed: () => Navigator.pushNamed(context, '/profile'),
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -80,6 +97,11 @@ class HomeScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.pushNamed(context, '/profile'),
+        tooltip: 'Профіль',
+        child: const Icon(Icons.person_outline),
       ),
     );
   }

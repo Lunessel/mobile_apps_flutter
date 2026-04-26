@@ -1,9 +1,60 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app/data/repositories/auth_repository.dart';
+import 'package:mobile_app/data/service_locator.dart';
+import 'package:mobile_app/domain/auth_validator.dart';
 import 'package:mobile_app/widgets/app_button.dart';
 import 'package:mobile_app/widgets/app_text_field.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final AuthRepository _repo = ServiceLocator.auth;
+  final TextEditingController _emailCtrl = TextEditingController();
+  final TextEditingController _passCtrl = TextEditingController();
+  bool _loading = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _emailCtrl.dispose();
+    _passCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    final emailErr = AuthValidator.email(_emailCtrl.text.trim());
+    final passErr = AuthValidator.password(_passCtrl.text);
+    if (emailErr != null || passErr != null) {
+      setState(() => _error = emailErr ?? passErr);
+      return;
+    }
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    final user = await _repo.findByEmail(_emailCtrl.text.trim());
+    if (!mounted) return;
+    if (user == null || user.password != _passCtrl.text) {
+      setState(() {
+        _loading = false;
+        _error = 'Невірний email або пароль';
+      });
+      return;
+    }
+    await _repo.saveCurrentUser(user.email);
+    if (!mounted) return;
+    setState(() => _loading = false);
+    await Navigator.pushNamedAndRemoveUntil(
+      context,
+      '/home',
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,20 +86,30 @@ class LoginScreen extends StatelessWidget {
                     ?.copyWith(color: Colors.grey),
               ),
               SizedBox(height: size.height * 0.06),
-              const AppTextField(
+              AppTextField(
                 hint: 'Email',
                 icon: Icons.email_outlined,
+                controller: _emailCtrl,
               ),
               const SizedBox(height: 16),
-              const AppTextField(
+              AppTextField(
                 hint: 'Пароль',
                 icon: Icons.lock_outline,
                 obscureText: true,
+                controller: _passCtrl,
               ),
-              const SizedBox(height: 24),
+              if (_error != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              const SizedBox(height: 16),
               AppButton(
-                label: 'Увійти',
-                onPressed: () => Navigator.pushNamed(context, '/home'),
+                label: _loading ? 'Завантаження...' : 'Увійти',
+                onPressed: _loading ? null : _login,
               ),
               const SizedBox(height: 12),
               AppButton(
