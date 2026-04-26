@@ -8,4 +8,7 @@ abstract interface class AuthRepository {
   Future<void> updateUser(UserModel user);
   Future<void> deleteUser(String email);
   Future<void> logout();
+  Future<String?> getToken();
+  Future<void> saveToken(String token);
+  Future<void> deleteToken();
 }

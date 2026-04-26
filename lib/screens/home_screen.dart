@@ -4,6 +4,7 @@ import 'package:mobile_app/data/repositories/auth_repository.dart';
 import 'package:mobile_app/data/service_locator.dart';
 import 'package:mobile_app/providers/connectivity_provider.dart';
 import 'package:mobile_app/providers/mqtt_provider.dart';
+import 'package:mobile_app/widgets/offline_banner.dart';
 import 'package:mobile_app/widgets/sensor_card.dart';
 import 'package:provider/provider.dart';
 
@@ -42,6 +43,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         automaticallyImplyLeading: false,
         actions: [
+          IconButton(
+            onPressed: () => Navigator.pushNamed(context, '/alerts'),
+            icon: const Icon(Icons.task_alt),
+            tooltip: 'Завдання',
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: Tooltip(
@@ -59,17 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
-          if (!online)
-            Container(
-              width: double.infinity,
-              color: Colors.orange,
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
-              child: const Text(
-                'Немає з\'єднання з мережею',
-                style: TextStyle(color: Colors.white),
-                textAlign: TextAlign.center,
-              ),
-            ),
+          if (!online) const OfflineBanner(),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(16),

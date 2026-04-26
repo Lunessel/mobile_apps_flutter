@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app/providers/connectivity_provider.dart';
 import 'package:mobile_app/providers/mqtt_provider.dart';
+import 'package:mobile_app/screens/alerts_screen.dart';
 import 'package:mobile_app/screens/home_screen.dart';
 import 'package:mobile_app/screens/login_screen.dart';
 import 'package:mobile_app/screens/profile_screen.dart';
@@ -35,6 +36,7 @@ class MyApp extends StatelessWidget {
           '/register': (context) => const RegisterScreen(),
           '/home': (context) => const HomeScreen(),
           '/profile': (context) => const ProfileScreen(),
+          '/alerts': (context) => const AlertsScreen(),
         },
       ),
     );

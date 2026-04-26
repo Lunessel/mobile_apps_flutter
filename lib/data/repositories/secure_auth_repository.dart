@@ -10,6 +10,7 @@ class SecureAuthRepository implements AuthRepository {
   final FlutterSecureStorage _storage;
 
   static const _currentKey = 'current_user';
+  static const _tokenKey = 'auth_token';
 
   static String _userKey(String email) => 'user_$email';
 
@@ -51,5 +52,18 @@ class SecureAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> logout() => _storage.delete(key: _currentKey);
+  Future<void> logout() async {
+    await _storage.delete(key: _currentKey);
+    await _storage.delete(key: _tokenKey);
+  }
+
+  @override
+  Future<String?> getToken() => _storage.read(key: _tokenKey);
+
+  @override
+  Future<void> saveToken(String token) =>
+      _storage.write(key: _tokenKey, value: token);
+
+  @override
+  Future<void> deleteToken() => _storage.delete(key: _tokenKey);
 }
