@@ -103,6 +103,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _logout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Вийти з акаунту?'),
+        content: const Text('Ви впевнені, що хочете вийти?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Скасувати'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Вийти'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
     await _repo.logout();
     if (!mounted) return;
     await Navigator.pushNamedAndRemoveUntil(

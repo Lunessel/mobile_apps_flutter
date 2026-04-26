@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:mobile_app/data/repositories/auth_repository.dart';
 import 'package:mobile_app/data/service_locator.dart';
 import 'package:mobile_app/domain/auth_validator.dart';
+import 'package:mobile_app/providers/connectivity_provider.dart';
 import 'package:mobile_app/widgets/app_button.dart';
 import 'package:mobile_app/widgets/app_text_field.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -33,6 +35,14 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => _error = emailErr ?? passErr);
       return;
     }
+
+    final online = await context.read<ConnectivityProvider>().check();
+    if (!mounted) return;
+    if (!online) {
+      setState(() => _error = 'Немає з\'єднання з мережею');
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
@@ -59,6 +69,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final online = context.watch<ConnectivityProvider>().isOnline;
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -85,6 +97,31 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: Theme.of(context).textTheme.bodyMedium
                     ?.copyWith(color: Colors.grey),
               ),
+              if (!online) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.wifi_off, color: Colors.orange, size: 18),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Немає з\'єднання з мережею',
+                          style: TextStyle(color: Colors.orange),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               SizedBox(height: size.height * 0.06),
               AppTextField(
                 hint: 'Email',
@@ -115,8 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
               AppButton(
                 label: 'Зареєструватися',
                 isOutlined: true,
-                onPressed: () =>
-                    Navigator.pushNamed(context, '/register'),
+                onPressed: () => Navigator.pushNamed(context, '/register'),
               ),
             ],
           ),
