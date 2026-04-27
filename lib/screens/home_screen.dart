@@ -1,3 +1,4 @@
+import 'package:flashlight_plugin/flashlight_plugin.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile_app/cubits/auth/auth_cubit.dart';
@@ -7,8 +8,35 @@ import 'package:mobile_app/cubits/mqtt/mqtt_cubit.dart';
 import 'package:mobile_app/widgets/offline_banner.dart';
 import 'package:mobile_app/widgets/sensor_card.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  static const int _secretTapThreshold = 5;
+  int _tapCount = 0;
+  bool _flashlightOn = false;
+
+  void _onTitleTap() {
+    _tapCount++;
+    if (_tapCount >= _secretTapThreshold) {
+      _tapCount = 0;
+      _showFlashlightSheet();
+    }
+  }
+
+  void _showFlashlightSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (_) => _FlashlightSheet(
+        isOn: _flashlightOn,
+        onStateChange: (value) => setState(() => _flashlightOn = value),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +48,12 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(name.isNotEmpty ? 'Привіт, $name' : 'Hydro Monitor'),
+        title: GestureDetector(
+          onTap: _onTitleTap,
+          child: Text(
+            name.isNotEmpty ? 'Привіт, $name' : 'Hydro Monitor',
+          ),
+        ),
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
@@ -31,7 +64,9 @@ class HomeScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: Tooltip(
-              message: mqtt.isConnected ? 'MQTT підключено' : 'MQTT відключено',
+              message: mqtt.isConnected
+                  ? 'MQTT підключено'
+                  : 'MQTT відключено',
               child: Icon(
                 mqtt.isConnected ? Icons.sensors : Icons.sensors_off,
                 size: 22,
@@ -117,6 +152,83 @@ class HomeScreen extends StatelessWidget {
         onPressed: () => Navigator.pushNamed(context, '/profile'),
         tooltip: 'Профіль',
         child: const Icon(Icons.person_outline),
+      ),
+    );
+  }
+}
+
+class _FlashlightSheet extends StatefulWidget {
+  const _FlashlightSheet({
+    required this.isOn,
+    required this.onStateChange,
+  });
+
+  final bool isOn;
+  final void Function(bool) onStateChange;
+
+  @override
+  State<_FlashlightSheet> createState() => _FlashlightSheetState();
+}
+
+class _FlashlightSheetState extends State<_FlashlightSheet> {
+  late bool _isOn;
+
+  @override
+  void initState() {
+    super.initState();
+    _isOn = widget.isOn;
+  }
+
+  Future<void> _toggle(bool value) async {
+    if (value) {
+      await FlashlightPlugin.onLight(context);
+    } else {
+      await FlashlightPlugin.offLight(context);
+    }
+    if (!mounted) return;
+    setState(() => _isOn = value);
+    widget.onStateChange(value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 24,
+          vertical: 32,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              _isOn ? Icons.flashlight_on : Icons.flashlight_off,
+              size: 56,
+              color: _isOn ? Colors.amber : Colors.grey,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _isOn ? 'Ліхтарик увімкнено' : 'Ліхтарик вимкнено',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _isOn ? null : () => _toggle(true),
+                  icon: const Icon(Icons.flashlight_on),
+                  label: const Text('Увімкнути'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _isOn ? () => _toggle(false) : null,
+                  icon: const Icon(Icons.flashlight_off),
+                  label: const Text('Вимкнути'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
