@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:mobile_app/bloc/mqtt_config/mqtt_config_bloc.dart';
 import 'package:mobile_app/cubits/alerts/alerts_cubit.dart';
 import 'package:mobile_app/cubits/auth/auth_cubit.dart';
 import 'package:mobile_app/cubits/connectivity/connectivity_cubit.dart';
@@ -12,8 +14,9 @@ import 'package:mobile_app/screens/profile_screen.dart';
 import 'package:mobile_app/screens/register_screen.dart';
 import 'package:mobile_app/screens/splash_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
   runApp(const MyApp());
 }
 
@@ -30,6 +33,12 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider(create: (_) => MqttCubit(ServiceLocator.mqtt)),
         BlocProvider(create: (_) => AlertsCubit(ServiceLocator.alerts)),
+        BlocProvider(
+          create: (_) => MqttConfigBloc(
+            ServiceLocator.mqtt,
+            ServiceLocator.defaultMqttConfig,
+          ),
+        ),
       ],
       child: MaterialApp(
         title: 'Hydro Monitor',
