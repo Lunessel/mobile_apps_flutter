@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:mobile_app/data/models/mqtt_config.dart';
 import 'package:mobile_app/data/repositories/alert_repository.dart';
 import 'package:mobile_app/data/repositories/api_alert_repository.dart';
 import 'package:mobile_app/data/repositories/auth_repository.dart';
@@ -14,4 +15,5 @@ final class ServiceLocator {
   static final AlertRepository alerts = ApiAlertRepository(_storage);
   static final ConnectivityService connectivity = ConnectivityService();
   static final MqttService mqtt = MqttService();
+  static final MqttConfig defaultMqttConfig = MqttConfig.defaults();
 }
