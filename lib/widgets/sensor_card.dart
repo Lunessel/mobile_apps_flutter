@@ -24,6 +24,7 @@ class SensorCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
@@ -44,12 +45,14 @@ class SensorCard extends StatelessWidget {
               style: textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
             Text(
               unit,
-              style: textTheme.bodySmall?.copyWith(
-                color: Colors.grey,
-              ),
+              style: textTheme.bodySmall?.copyWith(color: Colors.grey),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
           ],
         ),
