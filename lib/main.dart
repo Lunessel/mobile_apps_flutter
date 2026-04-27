@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_app/providers/connectivity_provider.dart';
-import 'package:mobile_app/providers/mqtt_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile_app/cubits/alerts/alerts_cubit.dart';
+import 'package:mobile_app/cubits/auth/auth_cubit.dart';
+import 'package:mobile_app/cubits/connectivity/connectivity_cubit.dart';
+import 'package:mobile_app/cubits/mqtt/mqtt_cubit.dart';
+import 'package:mobile_app/data/service_locator.dart';
 import 'package:mobile_app/screens/alerts_screen.dart';
 import 'package:mobile_app/screens/home_screen.dart';
 import 'package:mobile_app/screens/login_screen.dart';
 import 'package:mobile_app/screens/profile_screen.dart';
 import 'package:mobile_app/screens/register_screen.dart';
 import 'package:mobile_app/screens/splash_screen.dart';
-import 'package:provider/provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,10 +22,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
+    return MultiBlocProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ConnectivityProvider()),
-        ChangeNotifierProvider(create: (_) => MqttProvider()),
+        BlocProvider(create: (_) => AuthCubit(ServiceLocator.auth)),
+        BlocProvider(
+          create: (_) => ConnectivityCubit(ServiceLocator.connectivity),
+        ),
+        BlocProvider(create: (_) => MqttCubit(ServiceLocator.mqtt)),
+        BlocProvider(create: (_) => AlertsCubit(ServiceLocator.alerts)),
       ],
       child: MaterialApp(
         title: 'Hydro Monitor',

@@ -1,39 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile_app/cubits/alerts/alerts_cubit.dart';
+import 'package:mobile_app/cubits/alerts/alerts_state.dart';
+import 'package:mobile_app/cubits/connectivity/connectivity_cubit.dart';
 import 'package:mobile_app/data/models/alert.dart';
-import 'package:mobile_app/data/repositories/alert_repository.dart';
-import 'package:mobile_app/data/service_locator.dart';
-import 'package:mobile_app/providers/connectivity_provider.dart';
 import 'package:mobile_app/widgets/offline_banner.dart';
-import 'package:provider/provider.dart';
 
-class AlertsScreen extends StatefulWidget {
+class AlertsScreen extends StatelessWidget {
   const AlertsScreen({super.key});
 
   @override
-  State<AlertsScreen> createState() => _AlertsScreenState();
-}
-
-class _AlertsScreenState extends State<AlertsScreen> {
-  final AlertRepository _repo = ServiceLocator.alerts;
-  late Future<List<Alert>> _future;
-
-  @override
-  void initState() {
-    super.initState();
-    _future = _repo.getAlerts();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final online = context.watch<ConnectivityProvider>().isOnline;
+    final online = context.watch<ConnectivityCubit>().state;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Завдання догляду'),
         actions: [
           IconButton(
-            onPressed: () =>
-                setState(() => _future = _repo.getAlerts()),
+            onPressed: () => context.read<AlertsCubit>().loadAlerts(),
             icon: const Icon(Icons.refresh),
             tooltip: 'Оновити',
           ),
@@ -46,16 +31,16 @@ class _AlertsScreenState extends State<AlertsScreen> {
               message: 'Офлайн — відображено кешовані дані',
             ),
           Expanded(
-            child: FutureBuilder<List<Alert>>(
-              future: _future,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+            child: BlocBuilder<AlertsCubit, AlertsState>(
+              builder: (context, state) {
+                if (state is AlertsLoading) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (snapshot.hasError) {
-                  return Center(child: Text('Помилка: ${snapshot.error}'));
+                if (state is AlertsError) {
+                  return Center(child: Text('Помилка: ${state.message}'));
                 }
-                final alerts = snapshot.data ?? [];
+                final alerts =
+                    state is AlertsLoaded ? state.alerts : <Alert>[];
                 if (alerts.isEmpty) {
                   return const Center(child: Text('Немає завдань'));
                 }

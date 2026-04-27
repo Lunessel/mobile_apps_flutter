@@ -1,46 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_app/data/models/user.dart';
-import 'package:mobile_app/data/repositories/auth_repository.dart';
-import 'package:mobile_app/data/service_locator.dart';
-import 'package:mobile_app/providers/connectivity_provider.dart';
-import 'package:mobile_app/providers/mqtt_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile_app/cubits/auth/auth_cubit.dart';
+import 'package:mobile_app/cubits/auth/auth_state.dart';
+import 'package:mobile_app/cubits/connectivity/connectivity_cubit.dart';
+import 'package:mobile_app/cubits/mqtt/mqtt_cubit.dart';
 import 'package:mobile_app/widgets/offline_banner.dart';
 import 'package:mobile_app/widgets/sensor_card.dart';
-import 'package:provider/provider.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  final AuthRepository _repo = ServiceLocator.auth;
-  UserModel? _user;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUser();
-  }
-
-  Future<void> _loadUser() async {
-    final user = await _repo.getCurrentUser();
-    if (!mounted) return;
-    setState(() => _user = user);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final mqtt = context.watch<MqttProvider>();
-    final online = context.watch<ConnectivityProvider>().isOnline;
+    final mqtt = context.watch<MqttCubit>().state;
+    final online = context.watch<ConnectivityCubit>().state;
+    final authState = context.watch<AuthCubit>().state;
+    final name =
+        authState is AuthAuthenticated ? authState.user.name : '';
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          _user != null ? 'Привіт, ${_user!.name}' : 'Hydro Monitor',
-        ),
+        title: Text(name.isNotEmpty ? 'Привіт, $name' : 'Hydro Monitor'),
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
@@ -51,13 +31,11 @@ class _HomeScreenState extends State<HomeScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: Tooltip(
-              message: mqtt.isMqttConnected
-                  ? 'MQTT підключено'
-                  : 'MQTT відключено',
+              message: mqtt.isConnected ? 'MQTT підключено' : 'MQTT відключено',
               child: Icon(
-                mqtt.isMqttConnected ? Icons.sensors : Icons.sensors_off,
+                mqtt.isConnected ? Icons.sensors : Icons.sensors_off,
                 size: 22,
-                color: mqtt.isMqttConnected ? Colors.green : Colors.grey,
+                color: mqtt.isConnected ? Colors.green : Colors.grey,
               ),
             ),
           ),
