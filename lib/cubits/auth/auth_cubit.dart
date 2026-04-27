@@ -10,6 +10,8 @@ class AuthCubit extends Cubit<AuthState> {
     _loadCurrentUser();
   }
 
+  AuthCubit.unauthenticated(this._repo) : super(AuthUnauthenticated());
+
   final AuthRepository _repo;
 
   Future<void> _loadCurrentUser() async {

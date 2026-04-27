@@ -11,7 +11,9 @@ void main() {
     await tester.pumpWidget(
       MultiBlocProvider(
         providers: [
-          BlocProvider(create: (_) => AuthCubit(ServiceLocator.auth)),
+          BlocProvider(
+            create: (_) => AuthCubit.unauthenticated(ServiceLocator.auth),
+          ),
           BlocProvider(
             create: (_) => ConnectivityCubit(ServiceLocator.connectivity),
           ),
